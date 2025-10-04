@@ -1,88 +1,67 @@
-# Paperboy Past Due 🚴📰
+# Paperboy: Time to Collect
 
-A retro-styled browser game inspired by classic Gameboy aesthetics! Ride your bike through a neighborhood and catch flying newspapers with your net.
+A retro-styled browser game created for **Ludum Dare 58**. Ride your bike through a neighborhood and catch flying newspapers with your net before they pass you by!
 
-## 🎮 How to Play
+**Compo Theme:** Collector
 
-- **▲/▼ or W/S**: Move up and down
-- **SPACE**: Swing your net to collect newspapers
-- **Goal**: Catch as many newspapers as possible! Missing newspapers costs lives.
+## Play the Game
 
-The game gets progressively faster as your score increases!
+Simply open `index.html` in your web browser - no server or build process required!
 
-## 🚀 Running the Game
+## How to Play
 
-### Play Locally
+**Controls:**
+- **▲/▼** or **W/S** - Move up and down
+- **SPACE** - Swing your net to catch newspapers
+- **ENTER** - Start/Restart game
+- **ESC** - Pause
 
-Simply open `index.html` in your web browser. No server or build process required!
+**Objective:**
+Catch as many newspapers as possible! Each newspaper you miss costs a life. The game speeds up as your score increases, challenging your reflexes and timing.
 
-### Deploy to GitHub Pages
+**Scoring:**
+- Regular newspaper: 10 points
+- Newspaper bundle (rare): 100 points
+- Current speed multiplier shown in HUD
 
-1. **Initialize a Git repository** (if you haven't already):
-   ```bash
-   git init
-   git add .
-   git commit -m "Initial commit: Paperboy Past Due"
-   ```
+## Features
 
-2. **Create a new repository on GitHub**:
-   - Go to https://github.com/new
-   - Name your repository (e.g., `paperboy-overdue`)
-   - Don't initialize with README (you already have one)
+- **Authentic Gameboy Aesthetic** - Classic 4-color green palette
+- **Zero External Assets** - All graphics procedurally drawn with HTML5 Canvas
+- **Progressive Difficulty** - Speed increases as you improve
+- **Persistent High Score** - Tracks your best run using localStorage
+- **Smooth Animations** - Rotating newspapers, scrolling scenery, animated net swings
+- **Dynamic Environment** - Procedurally placed houses, trees, and clouds
 
-3. **Push your code to GitHub**:
-   ```bash
-   git remote add origin https://github.com/YOUR_USERNAME/YOUR_REPO_NAME.git
-   git branch -M main
-   git push -u origin main
-   ```
+## Technical Implementation
 
-4. **Enable GitHub Pages**:
-   - Go to your repository on GitHub
-   - Click "Settings"
-   - Scroll down to "Pages" in the left sidebar
-   - Under "Source", select "main" branch
-   - Click "Save"
-   - Your game will be live at: `https://YOUR_USERNAME.github.io/paperboy-overdue/`
+This game is built with vanilla web technologies:
+- **Pure JavaScript (ES6+)** - No frameworks or libraries
+- **HTML5 Canvas API** - All rendering done programmatically
+- **CSS3** - Gameboy-inspired UI styling
 
-## 🎨 Features
+The entire game runs client-side with no dependencies. Every visual element—from the bike rider to the houses—is drawn using Canvas paths and shapes, giving it that authentic retro feel.
 
-- **Retro Gameboy Aesthetic**: Classic green palette and pixelated style
-- **Procedurally Generated Graphics**: All artwork created with canvas drawing - no external assets!
-- **Scrolling Background**: Dynamic neighborhood with houses, trees, and clouds
-- **Progressive Difficulty**: Game speed increases as you play
-- **High Score Tracking**: Saves your best score using localStorage
-- **Responsive Design**: Adapts to different screen sizes
+## Development
 
-## 🛠️ Technical Details
+This game was created for Ludum Dare 58 (theme: "Collector") using **Cursor** with **Claude Sonnet 4.5** doing the heavy lifting. The AI-assisted development process allowed rapid iteration on gameplay mechanics and visual polish within the jam timeframe.
 
-Built with:
-- Pure JavaScript (ES6+)
-- HTML5 Canvas for rendering
-- CSS3 for UI styling
-- No external libraries or frameworks
-- No image files - all graphics drawn programmatically
+The codebase is organized into clean classes:
+- `Game` - Core game loop and state management
+- `Player` - Bike rider with net mechanics
+- `Newspaper` / `NewspaperStack` - Collectible objects
+- `Background` - Scrolling neighborhood scenery
+- `Particle` - Catch effects
 
-## 📝 Game Mechanics
+## Tips for High Scores
 
-- Newspapers spawn randomly at different heights
-- Use the net to catch them before they scroll off screen
-- Missing a newspaper ends the game
-- Score increases by 10 points for each catch
-- Game speed gradually increases over time
+- Stay near the center of the screen for maximum reach
+- Anticipate newspaper spawns and position yourself early
+- The net has a generous hitbox - you don't need pixel-perfect accuracy
+- Time your swings! The net is most effective mid-swing
+- Rare newspaper bundles are worth 10x points but don't cost a life if missed
 
-## 🎯 Tips
+## License
 
-- Keep moving! Stay in the middle of the screen to reach newspapers in any direction
-- Swing your net early - timing is key!
-- Watch for patterns in newspaper spawns
-- The net has a decent range, so don't worry about being pixel-perfect
-
-## 📜 License
-
-Feel free to use, modify, and share this game!
-
----
-
-Made with ❤️ for the joy of retro gaming
+MIT License - Feel free to use, modify, and share!
 

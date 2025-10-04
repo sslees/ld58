@@ -185,6 +185,31 @@ body {
     50% { opacity: 0.6; }
 }
 
+/* Hyperlink styling to match Gameboy theme */
+a {
+    color: #9bbc0f;
+    text-decoration: none;
+    border-bottom: 2px solid #8bac0f;
+    transition: all 0.2s ease;
+    font-weight: bold;
+}
+
+a:hover {
+    color: #8bac0f;
+    border-bottom-color: #9bbc0f;
+    text-shadow: 1px 1px #306230;
+}
+
+a:visited {
+    color: #8bac0f;
+    border-bottom-color: #306230;
+}
+
+a:active {
+    color: #ffcc00;
+    border-bottom-color: #ffcc00;
+}
+
 @media (max-width: 1050px) {
     .game-container {
         padding: 8px;
