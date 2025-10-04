@@ -1,8 +1,8 @@
 // Game Configuration
 const CONFIG = {
     canvas: {
-        width: 800,
-        height: 600
+        width: 960,
+        height: 480
     },
     player: {
         x: 150,
@@ -21,7 +21,7 @@ const CONFIG = {
     },
     background: {
         scrollSpeed: 3,
-        groundHeight: 150
+        groundHeight: 240
     },
     colors: {
         gameboy: {
@@ -38,14 +38,16 @@ class Game {
     constructor() {
         this.canvas = document.getElementById('gameCanvas');
         this.ctx = this.canvas.getContext('2d');
-        this.state = 'start'; // start, playing, gameOver
+        this.state = 'start'; // start, playing, paused, gameOver
         this.score = 0;
-        this.highScore = parseInt(localStorage.getItem('paperCatcherHighScore')) || 0;
+        this.highScore = parseInt(localStorage.getItem('paperboyOverdueHighScore')) || 0;
         this.speed = 1;
         this.frameCount = 0;
+        this.lives = 3;
         
         this.player = new Player();
         this.newspapers = [];
+        this.newspaperStacks = [];
         this.background = new Background();
         this.particleEffects = [];
         
@@ -65,6 +67,24 @@ class Game {
                 e.preventDefault();
                 if (this.state === 'playing') {
                     this.player.swingNet();
+                }
+            }
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                if (this.state === 'start') {
+                    this.startGame();
+                } else if (this.state === 'gameOver') {
+                    this.startGame();
+                } else if (this.state === 'paused') {
+                    this.resumeGame();
+                }
+            }
+            if (e.key === 'Escape') {
+                e.preventDefault();
+                if (this.state === 'playing') {
+                    this.pauseGame();
+                } else if (this.state === 'paused') {
+                    this.resumeGame();
                 }
             }
         });
@@ -88,16 +108,29 @@ class Game {
         this.score = 0;
         this.speed = 1;
         this.frameCount = 0;
+        this.lives = 3;
         this.newspapers = [];
+        this.newspaperStacks = [];
         this.particleEffects = [];
         this.lastNewspaperSpawn = 0;
+        this.lastStackSpawn = 0;
         this.player.reset();
         this.background.reset();
         
         document.getElementById('startScreen').classList.add('hidden');
         document.getElementById('gameOverScreen').classList.add('hidden');
+        document.getElementById('pauseScreen').classList.add('hidden');
         
         this.updateDisplay();
+    }
+    
+    loseLife() {
+        this.lives--;
+        this.updateDisplay();
+        
+        if (this.lives <= 0) {
+            this.gameOver();
+        }
     }
     
     gameOver() {
@@ -106,7 +139,7 @@ class Game {
         const isNewHighScore = this.score > this.highScore;
         if (isNewHighScore) {
             this.highScore = this.score;
-            localStorage.setItem('paperCatcherHighScore', this.highScore);
+            localStorage.setItem('paperboyOverdueHighScore', this.highScore);
             document.getElementById('newHighScore').classList.remove('hidden');
         } else {
             document.getElementById('newHighScore').classList.add('hidden');
@@ -114,6 +147,7 @@ class Game {
         
         document.getElementById('finalScore').textContent = this.score;
         document.getElementById('gameOverScreen').classList.remove('hidden');
+        document.getElementById('pauseScreen').classList.add('hidden');
         this.updateDisplay();
     }
     
@@ -121,6 +155,15 @@ class Game {
         document.getElementById('score').textContent = this.score;
         document.getElementById('highScore').textContent = this.highScore;
         document.getElementById('speed').textContent = this.speed.toFixed(1);
+        
+        // Update hearts display
+        const heartsContainer = document.getElementById('hearts');
+        if (heartsContainer) {
+            heartsContainer.innerHTML = '';
+            for (let i = 0; i < this.lives; i++) {
+                heartsContainer.innerHTML += '❤️';
+            }
+        }
     }
     
     spawnNewspaper() {
@@ -128,8 +171,9 @@ class Game {
         const spawnInterval = CONFIG.newspaper.maxSpawnInterval - (this.speed - 1) * 200;
         
         if (now - this.lastNewspaperSpawn > spawnInterval) {
-            const minY = 50;
-            const maxY = CONFIG.canvas.height - CONFIG.background.groundHeight - 50;
+            // Spawn in upper half of road (240-360) and above houses (down to ~200)
+            const minY = 200;
+            const maxY = 360;
             const y = Math.random() * (maxY - minY) + minY;
             
             this.newspapers.push(new Newspaper(CONFIG.canvas.width, y));
@@ -137,7 +181,22 @@ class Game {
         }
     }
     
+    spawnNewspaperStack() {
+        const now = Date.now();
+        const stackSpawnInterval = 15000; // Spawn stacks much less frequently (15 seconds)
+        
+        if (now - this.lastStackSpawn > stackSpawnInterval) {
+            const minY = 200;
+            const maxY = 360;
+            const y = Math.random() * (maxY - minY) + minY;
+            
+            this.newspaperStacks.push(new NewspaperStack(CONFIG.canvas.width, y));
+            this.lastStackSpawn = now;
+        }
+    }
+    
     checkCollisions() {
+        // Check newspaper collisions
         for (let i = this.newspapers.length - 1; i >= 0; i--) {
             const newspaper = this.newspapers[i];
             
@@ -153,7 +212,26 @@ class Game {
             // Check if newspaper went off screen (missed)
             if (newspaper.x + newspaper.width < 0) {
                 this.newspapers.splice(i, 1);
-                this.gameOver();
+                this.loseLife();
+            }
+        }
+        
+        // Check newspaper stack collisions
+        for (let i = this.newspaperStacks.length - 1; i >= 0; i--) {
+            const stack = this.newspaperStacks[i];
+            
+            // Check if stack is caught by net
+            if (this.player.isNetSwinging && this.player.netCollision(stack)) {
+                this.score += 100; // 10x points
+                this.newspaperStacks.splice(i, 1);
+                this.createParticleEffect(stack.x, stack.y, 'stack');
+                this.updateDisplay();
+                continue;
+            }
+            
+            // Check if stack went off screen (missed) - no life lost
+            if (stack.x + stack.width < 0) {
+                this.newspaperStacks.splice(i, 1);
             }
         }
     }
@@ -162,6 +240,16 @@ class Game {
         for (let i = 0; i < 8; i++) {
             this.particleEffects.push(new Particle(x, y, type));
         }
+    }
+    
+    pauseGame() {
+        this.state = 'paused';
+        document.getElementById('pauseScreen').classList.remove('hidden');
+    }
+    
+    resumeGame() {
+        this.state = 'playing';
+        document.getElementById('pauseScreen').classList.add('hidden');
     }
     
     update() {
@@ -186,11 +274,13 @@ class Game {
         this.player.update();
         this.background.update(this.speed);
         
-        // Spawn newspapers
+        // Spawn newspapers and stacks
         this.spawnNewspaper();
+        this.spawnNewspaperStack();
         
-        // Update newspapers
+        // Update newspapers and stacks
         this.newspapers.forEach(newspaper => newspaper.update(this.speed));
+        this.newspaperStacks.forEach(stack => stack.update(this.speed));
         
         // Update particles
         for (let i = this.particleEffects.length - 1; i >= 0; i--) {
@@ -212,8 +302,9 @@ class Game {
         // Draw background
         this.background.draw(this.ctx);
         
-        // Draw newspapers
+        // Draw newspapers and stacks
         this.newspapers.forEach(newspaper => newspaper.draw(this.ctx));
+        this.newspaperStacks.forEach(stack => stack.draw(this.ctx));
         
         // Draw particles
         this.particleEffects.forEach(particle => particle.draw(this.ctx));
@@ -233,7 +324,7 @@ class Game {
 class Player {
     constructor() {
         this.x = CONFIG.player.x;
-        this.y = CONFIG.canvas.height / 2;
+        this.y = 360;
         this.width = CONFIG.player.width;
         this.height = CONFIG.player.height;
         this.speed = CONFIG.player.speed;
@@ -245,18 +336,19 @@ class Player {
     }
     
     reset() {
-        this.y = CONFIG.canvas.height / 2;
+        this.y = 360;
         this.isNetSwinging = false;
         this.netAngle = 0;
         this.wheelRotation = 0;
     }
     
     moveUp() {
-        this.y = Math.max(30, this.y - this.speed);
+        this.y = Math.max(160, this.y - this.speed);
     }
     
     moveDown() {
-        const maxY = CONFIG.canvas.height - CONFIG.background.groundHeight - this.height + 20;
+        // Bottom of road minus bike height
+        const maxY = CONFIG.canvas.height - this.height;
         this.y = Math.min(maxY, this.y + this.speed);
     }
     
@@ -274,11 +366,18 @@ class Player {
             const elapsed = Date.now() - this.netSwingStartTime;
             const progress = Math.min(elapsed / CONFIG.player.netSwingDuration, 1);
             
-            // Swing net forward and back
-            if (progress < 0.5) {
-                this.netAngle = (progress * 2) * Math.PI / 2;
+            // Swing net up, down further, then back to middle
+            if (progress < 0.3) {
+                // First 30%: swing up
+                this.netAngle = -(progress / 0.3) * Math.PI / 4;
+            } else if (progress < 0.7) {
+                // Next 40%: swing down further
+                const downProgress = (progress - 0.3) / 0.4;
+                this.netAngle = -Math.PI / 4 + downProgress * (Math.PI / 2 + Math.PI / 4);
             } else {
-                this.netAngle = (2 - progress * 2) * Math.PI / 2;
+                // Last 30%: swing back to middle
+                const returnProgress = (progress - 0.7) / 0.3;
+                this.netAngle = (Math.PI / 2 + Math.PI / 4) - returnProgress * (Math.PI / 2 + Math.PI / 4);
             }
             
             if (progress >= 1) {
@@ -305,7 +404,7 @@ class Player {
         const colors = CONFIG.colors.gameboy;
         
         // Draw bike
-        // Wheels
+        // Wheels (keeping these as requested)
         const wheelRadius = 12;
         const backWheelX = this.x + 15;
         const frontWheelX = this.x + 45;
@@ -346,66 +445,121 @@ class Player {
         ctx.stroke();
         ctx.restore();
         
-        // Bike frame
+        // Bike frame - proper triangle frame
+        ctx.strokeStyle = colors.dark;
+        ctx.lineWidth = 3;
+        const seatX = this.x + 20;
+        const seatY = this.y + 45;
+        const handlebarX = this.x + 42;
+        const handlebarY = this.y + 42;
+        
+        ctx.beginPath();
+        // Main triangle
+        ctx.moveTo(backWheelX, wheelY);
+        ctx.lineTo(seatX, seatY);
+        ctx.lineTo(handlebarX, handlebarY);
+        ctx.lineTo(frontWheelX, wheelY);
+        // Seat post
+        ctx.moveTo(seatX, seatY);
+        ctx.lineTo(backWheelX, wheelY - 8);
+        // Front fork
+        ctx.moveTo(handlebarX, handlebarY);
+        ctx.lineTo(frontWheelX, wheelY - 2);
+        ctx.stroke();
+        
+        // Seat
+        ctx.fillStyle = colors.dark;
+        ctx.fillRect(seatX - 8, seatY - 2, 12, 4);
+        
+        // Handlebars
+        ctx.strokeStyle = colors.dark;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(handlebarX - 6, handlebarY - 2);
+        ctx.lineTo(handlebarX + 6, handlebarY - 2);
+        ctx.stroke();
+        
+        // Rider
+        const riderX = this.x + 25;
+        const riderY = this.y + 28;
+        
+        // Rider head
+        ctx.fillStyle = colors.dark;
+        ctx.beginPath();
+        ctx.arc(riderX, riderY, 8, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Rider body (torso)
         ctx.strokeStyle = colors.dark;
         ctx.lineWidth = 4;
         ctx.beginPath();
-        ctx.moveTo(backWheelX, wheelY);
-        ctx.lineTo(this.x + 30, this.y + 40);
-        ctx.lineTo(frontWheelX, wheelY);
-        ctx.moveTo(this.x + 30, this.y + 40);
-        ctx.lineTo(this.x + 30, this.y + 20);
+        ctx.moveTo(riderX, riderY + 8);
+        ctx.lineTo(riderX + 8, riderY + 22);
         ctx.stroke();
         
-        // Rider body
-        ctx.fillStyle = colors.dark;
-        ctx.fillRect(this.x + 20, this.y + 10, 20, 30);
-        
-        // Rider head
-        ctx.beginPath();
-        ctx.arc(this.x + 30, this.y, 10, 0, Math.PI * 2);
-        ctx.fill();
-        
-        // Rider legs
-        ctx.strokeStyle = colors.dark;
+        // Rider arm to handlebars
         ctx.lineWidth = 3;
         ctx.beginPath();
-        ctx.moveTo(this.x + 25, this.y + 40);
-        ctx.lineTo(backWheelX, wheelY - 5);
-        ctx.moveTo(this.x + 35, this.y + 40);
-        ctx.lineTo(frontWheelX - 5, wheelY - 5);
+        ctx.moveTo(riderX + 3, riderY + 12);
+        ctx.lineTo(handlebarX - 2, handlebarY - 2);
+        ctx.stroke();
+        
+        // Rider legs (pedaling position)
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(riderX + 8, riderY + 22);
+        ctx.lineTo(backWheelX - 8, wheelY - 8);
+        ctx.moveTo(riderX + 8, riderY + 22);
+        ctx.lineTo(backWheelX + 6, wheelY - 2);
         ctx.stroke();
         
         // Net
-        const netBaseX = this.x + 40;
-        const netBaseY = this.y + 20;
+        const netBaseX = this.x + 38;
+        const netBaseY = this.y + 25;
         const netEndX = netBaseX + Math.cos(this.netAngle) * CONFIG.player.netLength;
         const netEndY = netBaseY + Math.sin(this.netAngle) * CONFIG.player.netLength;
         
-        // Net handle
+        // Net handle (thicker and more visible)
         ctx.strokeStyle = colors.dark;
-        ctx.lineWidth = 3;
+        ctx.lineWidth = 4;
         ctx.beginPath();
         ctx.moveTo(netBaseX, netBaseY);
         ctx.lineTo(netEndX, netEndY);
         ctx.stroke();
         
-        // Net hoop
-        ctx.strokeStyle = colors.dark;
-        ctx.lineWidth = 2;
+        // Handle grip
+        ctx.lineWidth = 5;
         ctx.beginPath();
-        ctx.arc(netEndX, netEndY, 15, 0, Math.PI * 2);
+        ctx.moveTo(netBaseX, netBaseY);
+        ctx.lineTo(netBaseX + Math.cos(this.netAngle) * 12, netBaseY + Math.sin(this.netAngle) * 12);
         ctx.stroke();
         
-        // Net mesh
-        if (this.isNetSwinging) {
-            ctx.strokeStyle = colors.light;
-            ctx.lineWidth = 1;
-            for (let i = 0; i < 4; i++) {
-                ctx.beginPath();
-                ctx.arc(netEndX, netEndY, 15 - i * 3, 0, Math.PI * 2);
-                ctx.stroke();
-            }
+        // Net hoop (more prominent)
+        ctx.strokeStyle = colors.dark;
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.arc(netEndX, netEndY, 18, 0, Math.PI * 2);
+        ctx.stroke();
+        
+        // Net mesh (always visible, more detailed)
+        ctx.strokeStyle = this.isNetSwinging ? colors.darkest : colors.dark;
+        ctx.lineWidth = 1;
+        
+        // Radial lines
+        for (let i = 0; i < 8; i++) {
+            const angle = (Math.PI * 2 * i) / 8;
+            ctx.beginPath();
+            ctx.moveTo(netEndX, netEndY);
+            ctx.lineTo(netEndX + Math.cos(angle) * 18, netEndY + Math.sin(angle) * 18);
+            ctx.stroke();
+        }
+        
+        // Concentric circles
+        ctx.strokeStyle = this.isNetSwinging ? colors.light : colors.dark;
+        for (let i = 1; i < 3; i++) {
+            ctx.beginPath();
+            ctx.arc(netEndX, netEndY, 18 * (i / 3), 0, Math.PI * 2);
+            ctx.stroke();
         }
     }
 }
@@ -431,18 +585,137 @@ class Newspaper {
         ctx.translate(this.x + this.width / 2, this.y + this.height / 2);
         ctx.rotate(this.rotation);
         
-        // Newspaper
-        ctx.fillStyle = CONFIG.colors.gameboy.dark;
+        const colors = CONFIG.colors.gameboy;
+        
+        // Folded/flying newspaper (flat rectangle)
+        // Main paper body
+        ctx.fillStyle = colors.lightest;
         ctx.fillRect(-this.width / 2, -this.height / 2, this.width, this.height);
         
-        // Newspaper details (lines representing text)
-        ctx.strokeStyle = CONFIG.colors.gameboy.darkest;
+        // Border/shadow
+        ctx.strokeStyle = colors.dark;
+        ctx.lineWidth = 2;
+        ctx.strokeRect(-this.width / 2, -this.height / 2, this.width, this.height);
+        
+        // Headline (bold)
+        ctx.fillStyle = colors.darkest;
+        ctx.fillRect(-this.width / 2 + 3, -this.height / 2 + 2, this.width - 6, 3);
+        
+        // Text lines (article text)
+        ctx.fillStyle = colors.dark;
+        for (let i = 0; i < 3; i++) {
+            ctx.fillRect(-this.width / 2 + 3, -this.height / 2 + 8 + i * 3, this.width - 6, 1);
+        }
+        
+        // Center fold line
+        ctx.strokeStyle = colors.light;
         ctx.lineWidth = 1;
         ctx.beginPath();
-        ctx.moveTo(-this.width / 2 + 3, -this.height / 2 + 5);
-        ctx.lineTo(this.width / 2 - 3, -this.height / 2 + 5);
-        ctx.moveTo(-this.width / 2 + 3, -this.height / 2 + 10);
-        ctx.lineTo(this.width / 2 - 3, -this.height / 2 + 10);
+        ctx.moveTo(0, -this.height / 2);
+        ctx.lineTo(0, this.height / 2);
+        ctx.stroke();
+        
+        // Corner fold effect (top right)
+        ctx.fillStyle = colors.light;
+        ctx.beginPath();
+        ctx.moveTo(this.width / 2, -this.height / 2);
+        ctx.lineTo(this.width / 2 - 4, -this.height / 2);
+        ctx.lineTo(this.width / 2, -this.height / 2 + 4);
+        ctx.closePath();
+        ctx.fill();
+        ctx.strokeStyle = colors.dark;
+        ctx.lineWidth = 1;
+        ctx.stroke();
+        
+        ctx.restore();
+    }
+}
+
+// Newspaper Stack (5x points)
+class NewspaperStack {
+    constructor(x, y) {
+        this.x = x;
+        this.y = y;
+        this.width = 40;
+        this.height = 30;
+        this.rotation = Math.random() * Math.PI * 2;
+        this.rotationSpeed = 0.02;
+    }
+    
+    update(speedMultiplier) {
+        this.x -= CONFIG.newspaper.speed * speedMultiplier;
+        this.rotation += this.rotationSpeed;
+    }
+    
+    draw(ctx) {
+        ctx.save();
+        ctx.translate(this.x + this.width / 2, this.y + this.height / 2);
+        ctx.rotate(this.rotation);
+        
+        const colors = CONFIG.colors.gameboy;
+        
+        // Bundle of newspapers wrapped with twine
+        // Main bundle body (rectangular stack)
+        ctx.fillStyle = colors.light;
+        ctx.fillRect(-this.width / 2, -this.height / 2, this.width, this.height);
+        
+        // Individual newspaper layers (edges visible)
+        ctx.strokeStyle = colors.darkest;
+        ctx.lineWidth = 1;
+        for (let i = 1; i < 5; i++) {
+            const y = -this.height / 2 + (i * this.height / 5);
+            ctx.beginPath();
+            ctx.moveTo(-this.width / 2, y);
+            ctx.lineTo(this.width / 2, y);
+            ctx.stroke();
+        }
+        
+        // Side edges showing stack depth
+        ctx.fillStyle = colors.dark;
+        ctx.fillRect(-this.width / 2 - 2, -this.height / 2 + 2, 2, this.height - 2);
+        ctx.fillRect(this.width / 2, -this.height / 2 + 2, 2, this.height - 2);
+        ctx.fillRect(-this.width / 2, this.height / 2, this.width, 2);
+        
+        // Headlines/text on top newspaper
+        ctx.strokeStyle = colors.darkest;
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        // Bold headline
+        ctx.moveTo(-this.width / 2 + 4, -this.height / 2 + 5);
+        ctx.lineTo(this.width / 2 - 4, -this.height / 2 + 5);
+        ctx.stroke();
+        
+        // Smaller text lines
+        ctx.lineWidth = 0.5;
+        for (let i = 0; i < 3; i++) {
+            ctx.beginPath();
+            ctx.moveTo(-this.width / 2 + 4, -this.height / 2 + 10 + i * 3);
+            ctx.lineTo(this.width / 2 - 4, -this.height / 2 + 10 + i * 3);
+            ctx.stroke();
+        }
+        
+        // Twine/string wrapped in X pattern
+        ctx.strokeStyle = colors.darkest;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        // Horizontal wrapping
+        ctx.moveTo(-this.width / 2 - 2, 0);
+        ctx.lineTo(this.width / 2 + 2, 0);
+        // Vertical wrapping
+        ctx.moveTo(0, -this.height / 2 - 2);
+        ctx.lineTo(0, this.height / 2 + 2);
+        ctx.stroke();
+        
+        // Knot in center
+        ctx.fillStyle = colors.darkest;
+        ctx.fillRect(-3, -3, 6, 6);
+        
+        // String highlights
+        ctx.strokeStyle = colors.light;
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(-2, -1);
+        ctx.lineTo(2, -1);
         ctx.stroke();
         
         ctx.restore();
@@ -473,11 +746,13 @@ class Background {
     initializeScenery() {
         // Create initial houses
         for (let i = 0; i < 5; i++) {
+            const houseWidth = 80 + Math.random() * 40;
+            const houseHeight = 80 + Math.random() * 40;
             this.houses.push({
                 x: i * 250,
-                y: CONFIG.canvas.height - CONFIG.background.groundHeight - 100,
-                width: 80 + Math.random() * 40,
-                height: 80 + Math.random() * 40,
+                y: CONFIG.canvas.height - CONFIG.background.groundHeight - houseHeight,
+                width: houseWidth,
+                height: houseHeight,
                 roofHeight: 30 + Math.random() * 20,
                 windows: Math.floor(Math.random() * 3) + 2,
                 hasChimney: Math.random() > 0.5
@@ -496,10 +771,11 @@ class Background {
         
         // Create trees
         for (let i = 0; i < 6; i++) {
+            const treeHeight = 50 + Math.random() * 30;
             this.trees.push({
                 x: i * 200 + 100,
-                y: CONFIG.canvas.height - CONFIG.background.groundHeight - 60,
-                height: 50 + Math.random() * 30
+                y: CONFIG.canvas.height - CONFIG.background.groundHeight - treeHeight,
+                height: treeHeight
             });
         }
     }
@@ -517,11 +793,13 @@ class Background {
         this.houses = this.houses.filter(house => house.x > -200);
         while (this.houses.length < 5) {
             const lastHouse = this.houses[this.houses.length - 1];
+            const houseWidth = 80 + Math.random() * 40;
+            const houseHeight = 80 + Math.random() * 40;
             this.houses.push({
                 x: lastHouse.x + 250,
-                y: CONFIG.canvas.height - CONFIG.background.groundHeight - 100,
-                width: 80 + Math.random() * 40,
-                height: 80 + Math.random() * 40,
+                y: CONFIG.canvas.height - CONFIG.background.groundHeight - houseHeight,
+                width: houseWidth,
+                height: houseHeight,
                 roofHeight: 30 + Math.random() * 20,
                 windows: Math.floor(Math.random() * 3) + 2,
                 hasChimney: Math.random() > 0.5
@@ -544,10 +822,11 @@ class Background {
         this.trees = this.trees.filter(tree => tree.x > -50);
         while (this.trees.length < 6) {
             const lastTree = this.trees[this.trees.length - 1];
+            const treeHeight = 50 + Math.random() * 30;
             this.trees.push({
                 x: lastTree.x + 200,
-                y: CONFIG.canvas.height - CONFIG.background.groundHeight - 60,
-                height: 50 + Math.random() * 30
+                y: CONFIG.canvas.height - CONFIG.background.groundHeight - treeHeight,
+                height: treeHeight
             });
         }
     }
@@ -655,15 +934,18 @@ class Background {
             ctx.stroke();
         }
         
-        // Road line (center of ground)
+        // Road line (center of ground) - scrolling dashed line
+        const roadY = groundY + CONFIG.background.groundHeight / 2;
         ctx.strokeStyle = colors.darkest;
         ctx.lineWidth = 2;
         ctx.setLineDash([15, 10]);
+        ctx.lineDashOffset = this.groundOffset; // Make it scroll in the right direction
         ctx.beginPath();
-        ctx.moveTo(0, groundY + CONFIG.background.groundHeight / 2);
-        ctx.lineTo(CONFIG.canvas.width, groundY + CONFIG.background.groundHeight / 2);
+        ctx.moveTo(0, roadY);
+        ctx.lineTo(CONFIG.canvas.width, roadY);
         ctx.stroke();
         ctx.setLineDash([]);
+        ctx.lineDashOffset = 0;
     }
 }
 
@@ -697,6 +979,16 @@ class Particle {
             ctx.fillStyle = CONFIG.colors.gameboy.dark;
             ctx.beginPath();
             ctx.arc(this.x, this.y, 3, 0, Math.PI * 2);
+            ctx.fill();
+        } else if (this.type === 'stack') {
+            ctx.fillStyle = CONFIG.colors.gameboy.darkest;
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, 6, 0, Math.PI * 2);
+            ctx.fill();
+            // Add a bright center
+            ctx.fillStyle = CONFIG.colors.gameboy.lightest;
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, 2, 0, Math.PI * 2);
             ctx.fill();
         }
         

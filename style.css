@@ -11,6 +11,7 @@ body {
     justify-content: center;
     align-items: center;
     min-height: 100vh;
+    padding: 10px 0;
     color: #9fb4a8;
 }
 
@@ -19,20 +20,21 @@ body {
     border: 8px solid #8bac0f;
     border-radius: 20px;
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
-    padding: 20px;
-    max-width: 840px;
+    padding: 15px;
+    max-width: 1000px;
+    width: 98vw;
 }
 
 .game-header {
     text-align: center;
-    margin-bottom: 15px;
+    margin-bottom: 10px;
 }
 
 .game-header h1 {
     color: #9bbc0f;
-    font-size: 2em;
+    font-size: 1.8em;
     text-shadow: 2px 2px #306230;
-    margin-bottom: 10px;
+    margin-bottom: 8px;
     letter-spacing: 3px;
 }
 
@@ -45,7 +47,7 @@ body {
     border-radius: 5px;
 }
 
-.score-display, .high-score-display, .speed-display {
+.score-display, .high-score-display, .speed-display, .lives-display {
     color: #9bbc0f;
     font-size: 1.2em;
     font-weight: bold;
@@ -53,7 +55,8 @@ body {
 
 .score-display span:first-child,
 .high-score-display span:first-child,
-.speed-display span:first-child {
+.speed-display span:first-child,
+.lives-display span:first-child {
     margin-right: 5px;
     color: #8bac0f;
 }
@@ -64,6 +67,23 @@ body {
     border: 4px solid #306230;
     border-radius: 5px;
     overflow: hidden;
+}
+
+.controls-tip {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: rgba(15, 56, 15, 0.85);
+    border: 2px solid #8bac0f;
+    border-radius: 5px;
+    padding: 8px 12px;
+    color: #9bbc0f;
+    font-size: 0.9em;
+    font-weight: bold;
+    display: flex;
+    gap: 15px;
+    z-index: 10;
+    pointer-events: none;
 }
 
 #gameCanvas {
@@ -143,9 +163,9 @@ body {
 
 .game-footer {
     text-align: center;
-    margin-top: 15px;
+    margin-top: 10px;
     color: #8bac0f;
-    font-size: 0.9em;
+    font-size: 0.85em;
 }
 
 .hidden {
@@ -165,18 +185,30 @@ body {
     50% { opacity: 0.6; }
 }
 
-@media (max-width: 900px) {
+@media (max-width: 1050px) {
     .game-container {
-        padding: 10px;
+        padding: 8px;
         border-width: 4px;
     }
     
     .game-header h1 {
-        font-size: 1.5em;
+        font-size: 1.4em;
+        margin-bottom: 5px;
     }
     
     .info-bar {
-        font-size: 0.9em;
+        font-size: 0.85em;
+        padding: 6px;
+    }
+    
+    .controls-tip {
+        font-size: 0.75em;
+        padding: 6px 10px;
+        gap: 10px;
+    }
+    
+    .game-footer {
+        font-size: 0.75em;
     }
     
     .overlay-screen h2 {

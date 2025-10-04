@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Paper Catcher - Retro Bike Game</title>
+    <title>Paperboy Past Due - Retro Bike Game</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="game-container">
         <div class="game-header">
-            <h1>PAPER CATCHER</h1>
+            <h1>PAPERBOY PAST DUE</h1>
             <div class="info-bar">
                 <div class="score-display">
                     <span>SCORE:</span>
@@ -23,18 +23,29 @@
                     <span>SPEED:</span>
                     <span id="speed">1</span>
                 </div>
+                <div class="lives-display">
+                    <span>LIVES:</span>
+                    <span id="hearts">❤️❤️❤️</span>
+                </div>
             </div>
         </div>
         
         <div class="game-screen">
-            <canvas id="gameCanvas" width="800" height="600"></canvas>
+            <canvas id="gameCanvas" width="960" height="480"></canvas>
+            
+            <div class="controls-tip">
+                <span><strong>▲/▼</strong> Move,</span>
+                <span><strong>SPACE</strong> Swing Net</span>
+            </div>
             
             <div id="startScreen" class="overlay-screen">
-                <h2>PAPER CATCHER</h2>
-                <p>Ride your bike and catch newspapers with your net!</p>
+                <h2>PAPERBOY PAST DUE</h2>
+                <p>Ride your bike and collect newspapers with your net!</p>
                 <div class="controls-info">
-                    <p><strong>↑/↓</strong> - Move Up/Down</p>
+                    <p><strong>▲/▼</strong> - Move Up/Down</p>
                     <p><strong>SPACE</strong> - Swing Net</p>
+                    <p><strong>ENTER</strong> - Start/Restart</p>
+                    <p><strong>ESC</strong> - Pause</p>
                 </div>
                 <button id="startButton" class="game-button">START GAME</button>
             </div>
@@ -45,10 +56,19 @@
                 <p id="newHighScore" class="hidden">NEW HIGH SCORE!</p>
                 <button id="restartButton" class="game-button">TRY AGAIN</button>
             </div>
+            
+            <div id="pauseScreen" class="overlay-screen hidden">
+                <h2>PAUSED</h2>
+                <p>Press ENTER or ESC to resume</p>
+                <div class="controls-info">
+                    <p><strong>ENTER</strong> - Resume</p>
+                    <p><strong>ESC</strong> - Resume</p>
+                </div>
+            </div>
         </div>
         
         <div class="game-footer">
-            <p>A retro-inspired game • Made for GitHub Pages</p>
+            <p>A newspaper collecting game • Made for Ludum Dare 58</p>
         </div>
     </div>
     

@@ -1,12 +1,12 @@
-# Paper Catcher 🚴📰
+# Paperboy Past Due 🚴📰
 
 A retro-styled browser game inspired by classic Gameboy aesthetics! Ride your bike through a neighborhood and catch flying newspapers with your net.
 
 ## 🎮 How to Play
 
-- **↑/↓ or W/S**: Move up and down
-- **SPACE**: Swing your net to catch newspapers
-- **Goal**: Catch as many newspapers as possible! Missing a newspaper ends the game.
+- **▲/▼ or W/S**: Move up and down
+- **SPACE**: Swing your net to collect newspapers
+- **Goal**: Catch as many newspapers as possible! Missing newspapers costs lives.
 
 The game gets progressively faster as your score increases!
 
@@ -22,12 +22,12 @@ Simply open `index.html` in your web browser. No server or build process require
    ```bash
    git init
    git add .
-   git commit -m "Initial commit: Paper Catcher game"
+   git commit -m "Initial commit: Paperboy Past Due"
    ```
 
 2. **Create a new repository on GitHub**:
    - Go to https://github.com/new
-   - Name your repository (e.g., `paper-catcher`)
+   - Name your repository (e.g., `paperboy-overdue`)
    - Don't initialize with README (you already have one)
 
 3. **Push your code to GitHub**:
@@ -43,7 +43,7 @@ Simply open `index.html` in your web browser. No server or build process require
    - Scroll down to "Pages" in the left sidebar
    - Under "Source", select "main" branch
    - Click "Save"
-   - Your game will be live at: `https://YOUR_USERNAME.github.io/YOUR_REPO_NAME/`
+   - Your game will be live at: `https://YOUR_USERNAME.github.io/paperboy-overdue/`
 
 ## 🎨 Features
 
