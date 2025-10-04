@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Paper Catcher - Retro Bike Game</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="game-container">
+        <div class="game-header">
+            <h1>PAPER CATCHER</h1>
+            <div class="info-bar">
+                <div class="score-display">
+                    <span>SCORE:</span>
+                    <span id="score">0</span>
+                </div>
+                <div class="high-score-display">
+                    <span>HIGH:</span>
+                    <span id="highScore">0</span>
+                </div>
+                <div class="speed-display">
+                    <span>SPEED:</span>
+                    <span id="speed">1</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="game-screen">
+            <canvas id="gameCanvas" width="800" height="600"></canvas>
+            
+            <div id="startScreen" class="overlay-screen">
+                <h2>PAPER CATCHER</h2>
+                <p>Ride your bike and catch newspapers with your net!</p>
+                <div class="controls-info">
+                    <p><strong>↑/↓</strong> - Move Up/Down</p>
+                    <p><strong>SPACE</strong> - Swing Net</p>
+                </div>
+                <button id="startButton" class="game-button">START GAME</button>
+            </div>
+            
+            <div id="gameOverScreen" class="overlay-screen hidden">
+                <h2>GAME OVER</h2>
+                <p>Final Score: <span id="finalScore">0</span></p>
+                <p id="newHighScore" class="hidden">NEW HIGH SCORE!</p>
+                <button id="restartButton" class="game-button">TRY AGAIN</button>
+            </div>
+        </div>
+        
+        <div class="game-footer">
+            <p>A retro-inspired game • Made for GitHub Pages</p>
+        </div>
+    </div>
+    
+    <script src="game.js"></script>
+</body>
+</html>
+
