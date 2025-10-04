@@ -41,7 +41,7 @@
             <div id="startScreen" class="overlay-screen">
                 <h2>PAPERBOY: TIME TO COLLECT</h2>
                 <p>Ride your bike and collect newspapers with your net!</p>
-                <div class="controls-info">
+                <div class="controls-info desktop-only">
                     <p><strong>▲/▼</strong> or <strong>W/S</strong> - Move Up/Down</p>
                     <p><strong>SPACE</strong> - Swing Net</p>
                     <p><strong>ENTER</strong> - Start/Restart</p>
@@ -52,18 +52,32 @@
             
             <div id="gameOverScreen" class="overlay-screen hidden">
                 <h2>GAME OVER</h2>
-                <p>Final Score: <span id="finalScore">0</span></p>
+                <p class="final-score-text">Final Score: <span id="finalScore">0</span></p>
                 <p id="newHighScore" class="hidden">NEW HIGH SCORE!</p>
                 <button id="restartButton" class="game-button">TRY AGAIN</button>
             </div>
             
             <div id="pauseScreen" class="overlay-screen hidden">
                 <h2>PAUSED</h2>
-                <p>Press ENTER or ESC to resume</p>
-                <div class="controls-info">
+                <p class="desktop-only">Press ENTER or ESC to resume</p>
+                <p class="mobile-only">Tap START to resume</p>
+                <div class="controls-info desktop-only">
                     <p><strong>ENTER</strong> - Resume</p>
                     <p><strong>ESC</strong> - Resume</p>
                 </div>
+                <button id="resumeButton" class="game-button mobile-only">START</button>
+            </div>
+            
+            <!-- Mobile Touch Controls -->
+            <div id="mobileControls" class="mobile-controls hidden">
+                <button id="btnPause" class="mobile-btn mobile-btn-pause hidden">
+                    <span class="pause-bars"></span>
+                </button>
+                <div class="mobile-dpad hidden" id="mobileDpad">
+                    <button id="btnUp" class="mobile-btn mobile-btn-up">▲</button>
+                    <button id="btnDown" class="mobile-btn mobile-btn-down">▼</button>
+                </div>
+                <button id="btnSwing" class="mobile-btn mobile-btn-swing hidden">SWING</button>
             </div>
         </div>
         

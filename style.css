@@ -80,7 +80,7 @@ body {
     color: #9bbc0f;
     font-size: 0.9em;
     font-weight: bold;
-    display: flex;
+    display: none;
     gap: 15px;
     z-index: 10;
     pointer-events: none;
@@ -208,6 +208,269 @@ a:visited {
 a:active {
     color: #ffcc00;
     border-bottom-color: #ffcc00;
+}
+
+/* Mobile/Desktop visibility toggles */
+.desktop-only {
+    display: block;
+}
+
+.mobile-only {
+    display: none;
+}
+
+/* Mobile Touch Controls */
+.mobile-controls {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 5;
+}
+
+.mobile-dpad {
+    position: absolute;
+    left: 20px;
+    bottom: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.mobile-btn {
+    pointer-events: auto;
+    background: rgba(48, 98, 48, 0.8);
+    border: 3px solid #8bac0f;
+    color: #9bbc0f;
+    font-family: 'Courier New', monospace;
+    font-weight: bold;
+    font-size: 1.5em;
+    border-radius: 12px;
+    cursor: pointer;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    transition: all 0.1s;
+}
+
+.mobile-btn:active {
+    background: rgba(139, 172, 15, 0.8);
+    transform: scale(0.95);
+}
+
+.mobile-btn-up,
+.mobile-btn-down {
+    width: 60px;
+    height: 60px;
+}
+
+.mobile-btn-swing {
+    position: absolute;
+    right: 20px;
+    bottom: 20px;
+    width: 100px;
+    height: 100px;
+    font-size: 1.2em;
+}
+
+.mobile-btn-pause {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.pause-bars {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    position: relative;
+}
+
+.pause-bars::before,
+.pause-bars::after {
+    content: '';
+    position: absolute;
+    width: 6px;
+    height: 20px;
+    background: #9bbc0f;
+    border-radius: 1px;
+}
+
+.pause-bars::before {
+    left: 0;
+}
+
+.pause-bars::after {
+    right: 0;
+}
+
+@media (max-width: 768px) {
+    .desktop-only {
+        display: none !important;
+    }
+    
+    .mobile-only {
+        display: block !important;
+    }
+    
+    .controls-tip {
+        display: none !important;
+    }
+}
+
+/* Scale down controls for very small screens */
+@media (max-width: 480px) {
+    .mobile-dpad {
+        left: 10px;
+        bottom: 10px;
+        gap: 8px;
+    }
+    
+    .mobile-btn-up,
+    .mobile-btn-down {
+        width: 50px;
+        height: 50px;
+        font-size: 1.2em;
+    }
+    
+    .mobile-btn-swing {
+        right: 10px;
+        bottom: 10px;
+        width: 80px;
+        height: 80px;
+        font-size: 1em;
+    }
+    
+    .mobile-btn-pause {
+        top: 8px;
+        right: 8px;
+        width: 40px;
+        height: 40px;
+    }
+    
+    .pause-bars {
+        width: 16px;
+        height: 16px;
+    }
+    
+    .pause-bars::before,
+    .pause-bars::after {
+        width: 5px;
+        height: 16px;
+    }
+    
+    /* Scale down overlay screens and buttons */
+    .overlay-screen h2 {
+        font-size: 1.5em !important;
+        margin-bottom: 10px;
+    }
+    
+    .overlay-screen p {
+        font-size: 1em;
+        margin: 8px 0;
+    }
+    
+    .final-score-text {
+        font-size: 1.2em !important;
+        margin: 12px 0 !important;
+    }
+    
+    .game-button {
+        padding: 12px 30px;
+        font-size: 1.1em;
+        margin-top: 12px;
+    }
+    
+    .controls-info {
+        padding: 10px;
+        margin: 15px 0;
+    }
+    
+    .controls-info p {
+        margin: 6px 0;
+        font-size: 0.9em;
+    }
+}
+
+@media (max-width: 360px) {
+    .mobile-dpad {
+        left: 8px;
+        bottom: 8px;
+        gap: 6px;
+    }
+    
+    .mobile-btn-up,
+    .mobile-btn-down {
+        width: 45px;
+        height: 45px;
+        font-size: 1.1em;
+    }
+    
+    .mobile-btn-swing {
+        right: 8px;
+        bottom: 8px;
+        width: 70px;
+        height: 70px;
+        font-size: 0.9em;
+    }
+    
+    .mobile-btn-pause {
+        top: 6px;
+        right: 6px;
+        width: 35px;
+        height: 35px;
+    }
+    
+    .pause-bars {
+        width: 14px;
+        height: 14px;
+    }
+    
+    .pause-bars::before,
+    .pause-bars::after {
+        width: 4px;
+        height: 14px;
+    }
+    
+    /* Even smaller overlays for tiny screens */
+    .overlay-screen h2 {
+        font-size: 1.2em !important;
+        margin-bottom: 8px;
+    }
+    
+    .overlay-screen p {
+        font-size: 0.85em;
+        margin: 6px 0;
+    }
+    
+    .final-score-text {
+        font-size: 1.1em !important;
+        margin: 10px 0 !important;
+    }
+    
+    .game-button {
+        padding: 10px 25px;
+        font-size: 1em;
+        margin-top: 8px;
+    }
+    
+    .controls-info {
+        padding: 8px;
+        margin: 10px 0;
+    }
+    
+    .controls-info p {
+        margin: 5px 0;
+        font-size: 0.85em;
+    }
 }
 
 @media (max-width: 1050px) {

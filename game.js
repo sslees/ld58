@@ -53,10 +53,37 @@ class Game {
         
         this.keys = {};
         this.lastNewspaperSpawn = 0;
+        this.isMobile = this.detectMobile();
         
         this.setupEventListeners();
+        this.setupMobileControls();
+        this.setupResizeListener();
         this.updateDisplay();
         this.gameLoop();
+    }
+    
+    detectMobile() {
+        return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) 
+            || (window.innerWidth <= 768);
+    }
+    
+    setupResizeListener() {
+        let resizeTimeout;
+        window.addEventListener('resize', () => {
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(() => {
+                const wasMobile = this.isMobile;
+                this.isMobile = this.detectMobile();
+                
+                // Toggle mobile controls visibility
+                const mobileControls = document.getElementById('mobileControls');
+                if (this.isMobile && !wasMobile) {
+                    mobileControls.classList.remove('hidden');
+                } else if (!this.isMobile && wasMobile) {
+                    mobileControls.classList.add('hidden');
+                }
+            }, 250);
+        });
     }
     
     setupEventListeners() {
@@ -101,6 +128,106 @@ class Game {
         document.getElementById('restartButton').addEventListener('click', () => {
             this.startGame();
         });
+        
+        document.getElementById('resumeButton').addEventListener('click', () => {
+            this.resumeGame();
+        });
+    }
+    
+    setupMobileControls() {
+        const mobileControls = document.getElementById('mobileControls');
+        
+        if (this.isMobile) {
+            mobileControls.classList.remove('hidden');
+            
+            const btnUp = document.getElementById('btnUp');
+            const btnDown = document.getElementById('btnDown');
+            const btnSwing = document.getElementById('btnSwing');
+            const btnPause = document.getElementById('btnPause');
+            
+            // Pause button
+            btnPause.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                if (this.state === 'playing') {
+                    this.pauseGame();
+                }
+            });
+            
+            // Up button
+            btnUp.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                this.keys['ArrowUp'] = true;
+            });
+            btnUp.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                this.keys['ArrowUp'] = false;
+            });
+            btnUp.addEventListener('touchcancel', (e) => {
+                e.preventDefault();
+                this.keys['ArrowUp'] = false;
+            });
+            
+            // Down button
+            btnDown.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                this.keys['ArrowDown'] = true;
+            });
+            btnDown.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                this.keys['ArrowDown'] = false;
+            });
+            btnDown.addEventListener('touchcancel', (e) => {
+                e.preventDefault();
+                this.keys['ArrowDown'] = false;
+            });
+            
+            // Swing button
+            btnSwing.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                if (this.state === 'playing') {
+                    this.player.swingNet();
+                }
+            });
+            
+            // Also support mouse events for testing on desktop/with small windows
+            btnUp.addEventListener('mousedown', (e) => {
+                e.preventDefault();
+                this.keys['ArrowUp'] = true;
+            });
+            btnUp.addEventListener('mouseup', (e) => {
+                e.preventDefault();
+                this.keys['ArrowUp'] = false;
+            });
+            btnUp.addEventListener('mouseleave', (e) => {
+                this.keys['ArrowUp'] = false;
+            });
+            
+            btnDown.addEventListener('mousedown', (e) => {
+                e.preventDefault();
+                this.keys['ArrowDown'] = true;
+            });
+            btnDown.addEventListener('mouseup', (e) => {
+                e.preventDefault();
+                this.keys['ArrowDown'] = false;
+            });
+            btnDown.addEventListener('mouseleave', (e) => {
+                this.keys['ArrowDown'] = false;
+            });
+            
+            btnSwing.addEventListener('mousedown', (e) => {
+                e.preventDefault();
+                if (this.state === 'playing') {
+                    this.player.swingNet();
+                }
+            });
+            
+            btnPause.addEventListener('mousedown', (e) => {
+                e.preventDefault();
+                if (this.state === 'playing') {
+                    this.pauseGame();
+                }
+            });
+        }
     }
     
     startGame() {
@@ -120,6 +247,22 @@ class Game {
         document.getElementById('startScreen').classList.add('hidden');
         document.getElementById('gameOverScreen').classList.add('hidden');
         document.getElementById('pauseScreen').classList.add('hidden');
+        
+        // Show controls during gameplay
+        const controlsTip = document.querySelector('.controls-tip');
+        if (controlsTip) {
+            controlsTip.style.display = 'flex';
+        }
+        
+        if (this.isMobile) {
+            const pauseBtn = document.getElementById('btnPause');
+            const dpad = document.getElementById('mobileDpad');
+            const swingBtn = document.getElementById('btnSwing');
+            
+            if (pauseBtn) pauseBtn.classList.remove('hidden');
+            if (dpad) dpad.classList.remove('hidden');
+            if (swingBtn) swingBtn.classList.remove('hidden');
+        }
         
         this.updateDisplay();
     }
@@ -148,6 +291,23 @@ class Game {
         document.getElementById('finalScore').textContent = this.score;
         document.getElementById('gameOverScreen').classList.remove('hidden');
         document.getElementById('pauseScreen').classList.add('hidden');
+        
+        // Hide controls on game over
+        const controlsTip = document.querySelector('.controls-tip');
+        if (controlsTip) {
+            controlsTip.style.display = 'none';
+        }
+        
+        if (this.isMobile) {
+            const pauseBtn = document.getElementById('btnPause');
+            const dpad = document.getElementById('mobileDpad');
+            const swingBtn = document.getElementById('btnSwing');
+            
+            if (pauseBtn) pauseBtn.classList.add('hidden');
+            if (dpad) dpad.classList.add('hidden');
+            if (swingBtn) swingBtn.classList.add('hidden');
+        }
+        
         this.updateDisplay();
     }
     
@@ -161,7 +321,7 @@ class Game {
         if (heartsContainer) {
             heartsContainer.innerHTML = '';
             for (let i = 0; i < this.lives; i++) {
-                heartsContainer.innerHTML += '❤️';
+                heartsContainer.innerHTML += '♥ ';
             }
         }
     }
@@ -245,11 +405,43 @@ class Game {
     pauseGame() {
         this.state = 'paused';
         document.getElementById('pauseScreen').classList.remove('hidden');
+        
+        // Hide controls while paused
+        const controlsTip = document.querySelector('.controls-tip');
+        if (controlsTip) {
+            controlsTip.style.display = 'none';
+        }
+        
+        if (this.isMobile) {
+            const pauseBtn = document.getElementById('btnPause');
+            const dpad = document.getElementById('mobileDpad');
+            const swingBtn = document.getElementById('btnSwing');
+            
+            if (pauseBtn) pauseBtn.classList.add('hidden');
+            if (dpad) dpad.classList.add('hidden');
+            if (swingBtn) swingBtn.classList.add('hidden');
+        }
     }
     
     resumeGame() {
         this.state = 'playing';
         document.getElementById('pauseScreen').classList.add('hidden');
+        
+        // Show controls when resuming
+        const controlsTip = document.querySelector('.controls-tip');
+        if (controlsTip) {
+            controlsTip.style.display = 'flex';
+        }
+        
+        if (this.isMobile) {
+            const pauseBtn = document.getElementById('btnPause');
+            const dpad = document.getElementById('mobileDpad');
+            const swingBtn = document.getElementById('btnSwing');
+            
+            if (pauseBtn) pauseBtn.classList.remove('hidden');
+            if (dpad) dpad.classList.remove('hidden');
+            if (swingBtn) swingBtn.classList.remove('hidden');
+        }
     }
     
     update() {
